@@ -16,7 +16,7 @@ module.exports = function(isDev) {
             // webpack 4 没有，clean-webpack-plugin
             clean: true,
             // 打包后的文件的公共前缀路径
-            publicPath: './'
+            publicPath: '/'
         },
 
         // 2. resolve 部分

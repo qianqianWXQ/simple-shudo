@@ -5,6 +5,10 @@ const TerserPlugin = require("terser-webpack-plugin");
 const ZipPlugin = require("../zipPlugin");
 
 module.exports = merge(baseCfg(false), {
+    output: {
+        // 打包后的文件的公共前缀路径
+        publicPath: './'
+    },
     mode: "production",
 
     optimization: {
