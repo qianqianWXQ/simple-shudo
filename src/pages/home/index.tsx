@@ -20,7 +20,7 @@ export const BlockDataContext = React.createContext(null);
 export const DataContext = React.createContext(null)
 
 const ShuDu = () => {
-    const [modal] = Modal.useModal();
+    // const [modal] = Modal.useModal();
 
     const[chessboard, setChessBoard] = useState(blockArray);
     const [compareGroup, setCompareGroup] = useState<dataType[]>([]);
@@ -131,7 +131,7 @@ const ShuDu = () => {
                             }
                         }
                         setCompareGroup(tempData)
-                        console.log({tempData})
+                        // console.log({tempData})
 
                         // 大盒子先动
                         newOuterX += dx;
@@ -146,6 +146,7 @@ const ShuDu = () => {
 
     // 填写数字
     const fillBlock = (num: number) => {
+        // 改变棋盘内容
         setChessBoard(produce((draft) => {
             let flag = true;
             for (let i = 0; i < compareGroup.length; i ++) {
@@ -162,6 +163,11 @@ const ShuDu = () => {
                     onOk: init
                 })
 
+            } else if (outerBlockInfo.length === 0) {
+                Modal.error({
+                    title: "请先选择棋盘上要填数字的位置，再填数字！",
+                    okText: '确认'
+                })
             } else {
                 // 判断位置是否可用
                 if (!draft[outerBlockInfo[0]][outerBlockInfo[1]].data[innerBlockInfo[0]][innerBlockInfo[1]].data) {
@@ -172,7 +178,6 @@ const ShuDu = () => {
                 setCompareGroup(produce((draftCompare) => {
                     draftCompare.push(num)
                 }))
-                
             }
         }))
     }
