@@ -28,7 +28,6 @@ const ToolBox = ({
 
     return(
         <div className="toolBox_container">
-          toolbox
           <div className="number_block">
             {
               blockArray

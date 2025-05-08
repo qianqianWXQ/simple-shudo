@@ -237,10 +237,19 @@ const ShuDu = () => {
                 onOk: init
             })
         }
-        
     }
     return(
         <GameOverContext.Provider value={isGameOver}>
+            <div className={'title_container'}>
+                <div className={'title'}>
+                    数独小游戏
+                    {
+                        isGameOver
+                        && <span className={'game_over'}>游戏结束！,请点击右侧按钮重新开始</span>
+                    }
+                </div>
+                
+            </div>
             <div className={'container'}>
                 <Block data={chessboard} changeData={getActiveBlockData} />
                 <div className='right'>
