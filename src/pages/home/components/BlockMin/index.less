@@ -7,6 +7,14 @@
     width: calc(100%*0.333333);
     height: calc(100%*0.333333);
     text-align: center;
+    &.repeat {
+        background: linear-gradient(
+            45deg, 
+            rgba(255, 192, 203) 0, rgba(255, 192, 203) 25%, transparent 25%, transparent 50%, 
+            rgba(255, 192, 203) 50%, rgba(255, 192, 203) 75%, transparent 75%, transparent
+          );
+        background-size:  calc(100%*0.333333)  calc(100%*0.333333);
+    }
     &.active {
         background-color: rgba(255, 192, 203, .5);
     }

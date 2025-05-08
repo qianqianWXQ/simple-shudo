@@ -6,24 +6,41 @@ import './index.less';
 import React from 'react';
 import {produce} from "immer";
 import { dataType } from './interface';
-import { Button, Modal } from "antd";
+import { Modal } from "antd";
 // import { blockData } from './utils';
 
 // import './index.module.scss'
+/**
+ * 棋盘初始数据
+ * 使用 { data: '', isActive: false } 填充 9*9 个格子
+ */
 const blockArray = new Array(3).fill(new Array(3).fill({
-    data: new Array(3).fill(new Array(3).fill({ data: '', isActive: false })),
+    data: new Array(3).fill(new Array(3).fill({ data: '', isActive: false, isRepeat:false })),
     isActive: false
 }))
 // console.log({blockArray})
-export const BlockDataContext = React.createContext(null);
 
-export const DataContext = React.createContext(null)
+/**
+ * 两个 context ????
+ * TODO: 啥意思 ？？？？
+ */
+// export const BlockDataContext = React.createContext(null);
+// export const DataContext = React.createContext(null)
+
 
 const ShuDu = () => {
-    // const [modal] = Modal.useModal();
-
+    // 棋盘
     const[chessboard, setChessBoard] = useState(blockArray);
+
+    // 记录在当前粉色背景的区域内的数字
+    // 粉色背景中的数字区域内，数字不能重复
     const [compareGroup, setCompareGroup] = useState<dataType[]>([]);
+
+    /**
+     * 将整个棋盘 9*9 布局，其中 3*3 为一组，共 9组
+     * outerBlockInfo - 当前 组，在 -- 整个棋盘 -- 的位置
+     * innerBlockInfo - 当前格子，在 -- 当前组中 -- 的位置
+     */
     const [outerBlockInfo, setOuterBlockInfo] = useState<number[]>([]);
     const [innerBlockInfo, setInnerBlockInfo] = useState<number[]>([]);
 
@@ -41,6 +58,7 @@ const ShuDu = () => {
         outerBlockInfo: number[], // 二维数组
     ) => {
         return function (innerBlockInfo: number[]) { 
+            console.log({outerBlockInfo, innerBlockInfo})
             // 保存上下文
             setOuterBlockInfo(outerBlockInfo)
             setInnerBlockInfo(innerBlockInfo)
@@ -79,9 +97,13 @@ const ShuDu = () => {
                 const  currentDataGroup = draft[outerX][outerY].data
                 for (let i = 0; i < currentDataGroup.length; i ++) {
                     for(let j = 0; j < currentDataGroup[i].length; j ++) {
-                        console.log({currentDataGroup: currentDataGroup[i][j].data})
+                        // console.log({currentDataGroup: currentDataGroup[i][j].data})
                         if (currentDataGroup[i][j].data) {
-                            tempData.push(currentDataGroup[i][j].data);
+                            tempData.push({
+                                data:currentDataGroup[i][j].data,
+                                innerPosition: [i, j],
+                                outerPosition: [outerX,outerY]
+                            });
                         }
                     }
                 }
@@ -89,9 +111,6 @@ const ShuDu = () => {
                 // 当前方格内容 变色
                 draft[outerX][outerY].data[innerX][innerY].isActive = true;
 
-                
-                // console.log(JSON.stringify(draft, null, " "));
-                // console.log(JSON.stringify(draft));
                 // 其他方格对应的行列变色
                 const direction = [[0, -1], [0, 1], [-1, 0], [1, 0]];
                 // 遍历四个方向
@@ -106,7 +125,6 @@ const ShuDu = () => {
                     // 在找小格子
                     let newInnerX = innerX;
                     let newInnerY = innerY;
-                    // console.log({dx, dy})
                     while((newOuterX >= 0 && newOuterX <=2) && (newOuterY >= 0 && newOuterY <=2)) {
                         // 符合条件的行/列的所有值
                         if (dx !== 0) { // 横向走
@@ -114,7 +132,11 @@ const ShuDu = () => {
                                 draft[newOuterX][newOuterY].data[x][newInnerY].isActive = true;
                                 const currentData = draft[newOuterX][newOuterY].data[x][newInnerY].data;
                                 if (currentData) {
-                                    tempData.push(currentData)
+                                    tempData.push({
+                                        data: currentData,
+                                        innerPosition: [x, newInnerY],
+                                        outerPosition: [newOuterX, newOuterY]
+                                    })
                                 }
                                 
                             }
@@ -122,16 +144,20 @@ const ShuDu = () => {
 
                         if (dy !== 0) { // 纵向走
                             for (let y = 0; y <= 2; y ++) {
-                                // console.log({newInnerX})
                                 draft[newOuterX][newOuterY].data[newInnerX][y].isActive = true;
                                 const currentData = draft[newOuterX][newOuterY].data[newInnerX][y].data;
                                 if (currentData) {
-                                    tempData.push(currentData)
+                                    // tempData.push(currentData)
+                                    tempData.push({
+                                        data: currentData,
+                                        innerPosition: [newInnerX, y],
+                                        outerPosition: [newOuterX, newOuterY]
+                                    })
                                 }
                             }
                         }
                         setCompareGroup(tempData)
-                        // console.log({tempData})
+                        console.log({tempData})
 
                         // 大盒子先动
                         newOuterX += dx;
@@ -144,40 +170,62 @@ const ShuDu = () => {
         }
     }
 
+    // 判断数据是否符合数独游戏的需要
+    const checkData = (num:number) => {
+        // 判断数据内容是否 符合数独游戏要求
+        for (let i = 0; i < compareGroup.length; i ++) {
+            if (num === Number(compareGroup[i].data)) {
+                return {
+                    flag: false,
+                    innerPosition: compareGroup[i].innerPosition,
+                    outerPosition: compareGroup[i].outerPosition
+                }
+            }
+        }
+        return {
+            flag: true
+        }
+    }
     // 填写数字
     const fillBlock = (num: number) => {
         // 改变棋盘内容
         setChessBoard(produce((draft) => {
-            let flag = true;
-            for (let i = 0; i < compareGroup.length; i ++) {
-                if (num === Number(compareGroup[i])) {
-                    flag = false; // 有重复数据
-                }
-            }
-
-            // 判断数据内容是否 符合数独游戏要求
-            if (!flag) { // 游戏结束
-                Modal.error({
-                    title: "游戏结束",
-                    okText: '确认',
-                    onOk: init
-                })
-
-            } else if (outerBlockInfo.length === 0) {
+            if (outerBlockInfo.length === 0 && innerBlockInfo.length === 0) {
+                // 判断是否已经选中棋盘位置，若没有，则先选中
                 Modal.error({
                     title: "请先选择棋盘上要填数字的位置，再填数字！",
                     okText: '确认'
                 })
             } else {
-                // 判断位置是否可用
-                if (!draft[outerBlockInfo[0]][outerBlockInfo[1]].data[innerBlockInfo[0]][innerBlockInfo[1]].data) {
-                    // 赋值
+                console.log({num})
+                // 获取当前点击格子内的数字
+                const currentData = draft[outerBlockInfo[0]][outerBlockInfo[1]].data[innerBlockInfo[0]][innerBlockInfo[1]].data;
+                if (currentData) {// 当前位置有数字，则弹出提示弹窗
+                    Modal.error({
+                        title: "当前位置已经有数据啦，不要重复填写！",
+                        okText: '确认'
+                    })
+                } else { // 当前位置没有数字
+                    const { flag, innerPosition=[], outerPosition=[] } = checkData(num) || {};
+                    if (!flag) { // 游戏结束
+                        // 添加标记 ---- 当前值与之前填入值相同时，使用 条纹背景 标记 之前填入的值的位置
+                        draft[outerPosition[0]][outerPosition[1]].data[innerPosition[0]][innerPosition[1]].isRepeat = true;
+                        Modal.error({
+                            title: "游戏结束",
+                            okText: '确认',
+                            onOk: init
+                        })
+                    }
+                    // 填数---将数据填写到棋盘中
                     draft[outerBlockInfo[0]][outerBlockInfo[1]].data[innerBlockInfo[0]][innerBlockInfo[1]].data = num;
-                } 
-
-                setCompareGroup(produce((draftCompare) => {
-                    draftCompare.push(num)
-                }))
+                    setCompareGroup(produce((draftCompare) => {
+                       draftCompare.push({
+                            data: num,
+                            innerPosition: innerBlockInfo,
+                            outerPosition: outerBlockInfo
+                        })
+                    }))
+                }
             }
         }))
     }

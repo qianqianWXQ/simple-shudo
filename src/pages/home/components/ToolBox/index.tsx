@@ -35,7 +35,6 @@ const ToolBox = ({
               })
             }
           </div>
-          
         </div>
     )
 }

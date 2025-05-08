@@ -3,11 +3,12 @@ import './index.less';
 // import './index.module.scss'
 export type BlockMinPropsType = {
     data: string | number,
-    isActive?: boolean,
+    isRepeat: boolean,
     onClick: () => void,
+    isActive?: boolean,
     hasBorder?: boolean,
     hasBackGround?: boolean,
-    solidStyle?: boolean
+    solidStyle?: boolean,
 }
 const BlockMin = ({
     data,
@@ -15,7 +16,8 @@ const BlockMin = ({
     onClick,
     hasBorder = true,
     hasBackGround = false,
-    solidStyle = false
+    solidStyle = false,
+    isRepeat=false
 }: BlockMinPropsType) => {
     
     return(
@@ -25,7 +27,8 @@ const BlockMin = ({
                 isActive ? "active" : "",
                 hasBorder ? "border" : "",
                 hasBackGround ? "background" : "",
-                solidStyle ? "solid_style" : ""
+                solidStyle ? "solid_style" : "",
+                isRepeat ?"repeat" : ''
             ].join(" ")} 
             onClick={onClick}
         >
