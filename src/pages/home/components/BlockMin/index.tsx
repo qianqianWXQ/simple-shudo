@@ -1,5 +1,8 @@
 // @ts-ignore
+import { useContext } from 'react';
+import { GameOverContext } from '../..';
 import './index.less';
+import { Modal } from 'antd';
 // import './index.module.scss'
 export type BlockMinPropsType = {
     data: string | number,
@@ -19,7 +22,17 @@ const BlockMin = ({
     solidStyle = false,
     isRepeat=false
 }: BlockMinPropsType) => {
-    
+    const isGameOver = useContext(GameOverContext);
+    const handleClick = () => {
+        if(!isGameOver) {
+            onClick()
+        } else {
+            Modal.error({
+                title: '游戏结束',
+                content: '游戏已结束，不可输入数据，请点击右下角按钮重新开始 ~',
+            });
+        }
+    }
     return(
         <div 
             className={[
@@ -30,7 +43,7 @@ const BlockMin = ({
                 solidStyle ? "solid_style" : "",
                 isRepeat ?"repeat" : ''
             ].join(" ")} 
-            onClick={onClick}
+            onClick={handleClick}
         >
             {data}
         </div>

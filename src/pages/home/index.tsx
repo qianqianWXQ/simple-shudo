@@ -1,15 +1,11 @@
 // @ts-ignore
-import { useContext, useState } from 'react';
+import { useState, createContext } from 'react';
 import Block from './components/Block';
 import ToolBox from './components/ToolBox';
 import './index.less';
-import React from 'react';
 import {produce} from "immer";
 import { dataType } from './interface';
-import { Modal } from "antd";
-// import { blockData } from './utils';
-
-// import './index.module.scss'
+import { Button, Modal } from "antd";
 /**
  * 棋盘初始数据
  * 使用 { data: '', isActive: false } 填充 9*9 个格子
@@ -18,15 +14,8 @@ const blockArray = new Array(3).fill(new Array(3).fill({
     data: new Array(3).fill(new Array(3).fill({ data: '', isActive: false, isRepeat:false })),
     isActive: false
 }))
-// console.log({blockArray})
 
-/**
- * 两个 context ????
- * TODO: 啥意思 ？？？？
- */
-// export const BlockDataContext = React.createContext(null);
-// export const DataContext = React.createContext(null)
-
+export const GameOverContext = createContext(false)
 
 const ShuDu = () => {
     // 棋盘
@@ -44,6 +33,9 @@ const ShuDu = () => {
     const [outerBlockInfo, setOuterBlockInfo] = useState<number[]>([]);
     const [innerBlockInfo, setInnerBlockInfo] = useState<number[]>([]);
 
+    // 游戏是否结束
+    const [isGameOver, setIsGameOver] = useState<boolean>(false);
+
     // 初始化
     const init = () => {
         // 恢复数据的初始状态
@@ -51,6 +43,7 @@ const ShuDu = () => {
         setCompareGroup([])
         setOuterBlockInfo([])
         setInnerBlockInfo([])
+        setIsGameOver(false)
     }
 
     // 更新 UI 
@@ -212,9 +205,11 @@ const ShuDu = () => {
                         draft[outerPosition[0]][outerPosition[1]].data[innerPosition[0]][innerPosition[1]].isRepeat = true;
                         Modal.error({
                             title: "游戏结束",
-                            okText: '确认',
-                            onOk: init
+                            okText: '确认'
+                            // onOk: init
                         })
+                        // 改为消息提示
+                        setIsGameOver(true)
                     }
                     // 填数---将数据填写到棋盘中
                     draft[outerBlockInfo[0]][outerBlockInfo[1]].data[innerBlockInfo[0]][innerBlockInfo[1]].data = num;
@@ -230,13 +225,34 @@ const ShuDu = () => {
         }))
     }
 
+    // 游戏重新开始 ？
+    const restart = () => {
+        if (isGameOver) {
+            init();
+        } else {
+            // 先弹出提示框，询问是否要结束游戏，确认之后再进行操作
+            Modal.error({
+                title: "结束游戏之后，当前游戏数据会丢失，确认要结束游戏吗？",
+                okText: '确认',
+                onOk: init
+            })
+        }
+        
+    }
     return(
-        <div className={'container'}>
-            <Block data={chessboard} changeData={getActiveBlockData}/>
-            <div className='right'>
-                <ToolBox fillData={fillBlock}/>
+        <GameOverContext.Provider value={isGameOver}>
+            <div className={'container'}>
+                <Block data={chessboard} changeData={getActiveBlockData} />
+                <div className='right'>
+                    <ToolBox fillData={fillBlock} />
+                    <div className={'btn_box'}>
+                        <Button size='large' type='primary' onClick={restart}>重新开始</Button>
+                    </div>
+                    
+                </div>
             </div>
-        </div>
+        </GameOverContext.Provider>
+        
     )
 }
 
