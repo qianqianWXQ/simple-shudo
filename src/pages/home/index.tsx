@@ -245,7 +245,7 @@ const ShuDu = () => {
                     数独小游戏
                     {
                         isGameOver
-                        && <span className={'game_over'}>游戏结束！,请点击右侧按钮重新开始</span>
+                        && <span className={'game_over'}>游戏结束！请点击右侧按钮重新开始</span>
                     }
                 </div>
                 
